@@ -8,46 +8,59 @@ topics:
 published: true
 ---
 
-この記事では、NextjsでFontAwesomeを使おうとした際にアイコンが巨大化した原因と、この現象を治す方法が書かれています。
+この記事では、NextjsでFontAwesomeを使用した際にアイコンが巨大化した原因と、解決方法が書かれています。
 
-もし同じ現象で直し方を探していて、この記事を見て直すことがかなったら幸いです。
+もし同じ現象で困っているようでしたら、この記事がもしかしたら役に立つかもしれません。
 
-ちなみに以下のような感じになります。
+またどのような現象なのかというと、以下の画像の通りです。
+
+## 問題となる現象
 
 ![巨大なアイコン](/images/big-icon.png)
 
-またすでにFontAwesomeのサイトにこの記事と同じことが書かれています。
-英語が読める方なら以下のURLから参照したほうが早いかもしれません。
+本来のFontAwesomeのアイコンでは文字と同じような大きさになるところが、ここでは画面全体にアイコンが表示されています。
 
-> https://fontawesome.com/docs/web/use-with/react/use-with
-
-### 動作環境
+## 動作環境
 
 アイコンが巨大化した現象は、次の環境で起きました。
 
+```json
+{
+    "@fortawesome/fontawesome-svg-core": "^6.4.0",
+    "@fortawesome/free-brands-svg-icons": "^6.4.0",
+    "@fortawesome/free-regular-svg-icons": "^6.4.0",
+    "@fortawesome/free-solid-svg-icons": "^6.4.0",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "next": "^14.1.3",
+}
 ```
-package (version)
 
-Nextjs (13.4.9)
-@fortawesome/fontawesome-svg-core (^6.4.0)
-@fortawesome/free-brands-svg-icons (^6.4.0),
-@fortawesome/react-fontawesome (^0.2.0),
-```
+## 原因
 
-### 原因と解決方法
+NextjsのCSSの管理方法が他のフレームワークと異なるからみたいです。
 
-アイコンが巨大化する原因はNextjsのCSSの管理方法が他のフレームワークと異なるため、とFontAwesome公式サイトの記事で書かれていました。
+## 解決方法
 
-解決する方法は以下のコードを、`pages/_app.js`、または`app/layout.js`に以下のコードを追加します。
+以下のコードを、`pages/_app.js`、または`app/layout.js`に以下のコードを追加します。
 
-```javascript
+```js:layout.js
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 config.autoAddCss = false;
 ```
 
-上記のコードでは、`config.autoAddCss = false`にすることで、`@fortawesome/fontawesome-svg-core`が`<head>`に`<style>`要素を挿入しなくなるそうです。
+上記のコードでは、`config.autoAddCss = false`にすることで、`fontawesome-svg-core`が`<head>`に`<style>`要素を挿入しなくなるそうです。
 
-そして`<style>`要素を挿入しない代わりに、`@fortawesome/fontawesome-svg-core/styles.css`のCSSを使うことで、この現象を抑えてるってことなのかも。
+そして`<style>`を挿入しない代わりに、`@fortawesome/fontawesome-svg-core/styles.css`のCSSを使うことで、アイコンの巨大化を防いでるみたいです。多分...
 
-この記事は以上です！見ていただきありがとうございました😎
+## まとめ
+
+この問題は、Nextjsのスタイルが他のフレームワークと違ってちょっと特殊で、それがFontAwesomeに合わないことで起こるみたいですね。
+
+なのでこちら側でスタイルの無効化や適用をしてやらなくてはいけないみたい。
+
+仕方ないね😎
+
+## 参考文献
+
+https://fontawesome.com/docs/web/use-with/react/use-with
