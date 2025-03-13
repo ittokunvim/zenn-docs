@@ -10,77 +10,63 @@ published: true
 published_at: "2023-06-18 02:03"
 ---
 
-ここでいうタイミングゲームとは、細長いスライダーの中に左右に動くバーがあり、そのバーを真ん中にタイミングを合わせて、高得点を狙うという単純なゲームです。
+この記事では、Rust製のBevyを使ったタイミングゲームの作り方について説明しています。
 
-見た目はこんな感じです。
+タイミングゲームとは、細長いスライダーの中に左右に動くバーがあり、
+そのバーを真ん中にタイミングを合わせて、高得点を狙うというゲームです。
 
-![タイミングゲーム](https://storage.googleapis.com/zenn-user-upload/00a182b26ff0-20230606.png)
+こんな感じ
 
-ゲームを作成するにあたり、参考にしたサイトは次のとおりです。
+![タイミングゲーム](/images/bevy_timing_game.gif)
 
-> [Bevy Examples](https://github.com/bevyengine/bevy/blob/main/examples)
+## 参考リンク
 
-ソースコードはこちら
+タイミングゲームを作成する際に参考にしたサイトは以下の通り。
 
-> [timing game](https://github.com/ittokun/bevy-games/blob/main/examples/timing.rs)
+https://bevyengine.org/examples/
 
-ゲームを正常に動作させるためにアセットをダウンロードしておく必要があります。以下のURLから2つのフォントと1つの音源をダウンロードしておいてください。
+## ソースコード
 
-保存場所は、フォントは`assets/fonts`、音源は`assets/sounds`に保存してください。
+実装したタイミングゲームのソースコードは`GitHub`に保存しています。
 
-> - [FiraSans-Bold.ttf](https://github.com/ittokun/bevy-games/blob/main/assets/fonts/FiraSans-Bold.ttf)
-> - [FiraMono-Medium.ttf](https://github.com/ittokun/bevy-games/blob/main/assets/fonts/FiraMono-Medium.ttf)
-> - [timing_decide.ogg](https://github.com/ittokun/bevy-games/blob/main/assets/sounds/timing_decide.ogg)
+https://github.com/ittokunvim/doc-bevy-timing-game
 
-さてここからは`Bevy`を使ったタイミングゲームの作り方を紹介しますが、このゲームエンジンのバージョンについて触れておく必要があります。
-今回使用したBevyのバージョンは`0.10.1`です。なので、それ以前や以降のバージョンでは正しく動作しない可能性が大いにあることにご注意ください（実際、`0.9.0`では多分動きません）。
+## バージョン
 
-あとは当然ですが[Rustプログラミング言語](https://www.rust-lang.org/ja)が必要になります。インストールしておきましょう。
+タイミングゲームの実装に使用した`Bevy`のバージョンは`0.10.1`です。
 
-というわけで見ていきましょう🤟
+もしも上記とは異なるバージョンで開発を行うと動作しない可能性が高いです。
 
-### まずはプロジェクトを作成する
+## Cargoを追加
 
-ゲームを作成するにはまず、プロジェクトが必要です。
-`cargo new timing_game`のようにタイミングゲーム用のプロジェクトを作成しても良いですが、ここでは「色々なBevyのゲームがあるプロジェクト」を作成します。
+`Bevy`を使用するには`Cargo`が必要です。
 
-では、以下のコマンドを実行します。
+以下のコマンドを実行して`Cargo`を追加しましょう。
 
-```bash
-# Cargoプロジェクトを作成
-cargo new bevy-games
-# Cargoプロジェクトへ移動
-cd bevy-games
+```sh
+# ディレクトリを作成
+mkdir bevy-timing-game
+# Cargoを追加
+cargo init
+# 動作を確認
+cargo run
 ```
 
-作成すると`src`ディレクトリがあるはずですが、今回は`examples`ディレクトリで作業を行うため使用しません。置いておいても、削除してもどっちでも構いません。
+## アセットをダウンロード
 
-次に`examples`ディレクトリを作成し、`examples/timing.rs`ファイルを作成します。
+以下のリストは、タイミングゲームで使用するアセットです。
 
-```bash
-mkdir examples
-touch examples/timing.rs
-```
+ゲームを動かすには以下のアセットをダウンロードする必要があります。
 
-一応`timing.rs`ファイルに`Hello World`を書いて動くことを確認しておきましょう。
+保存場所は、まず`assets`ディレクトリを作成し、フォントは`assets/fonts`、音源は`assets/sounds`に保存します。
 
-```rust
-fn main() {
-    println!("やっはろー！");
-}
-```
+- [FiraSans-Bold.ttf](https://github.com/ittokun/bevy-games/blob/main/assets/fonts/FiraSans-Bold.ttf)
+- [FiraMono-Medium.ttf](https://github.com/ittokun/bevy-games/blob/main/assets/fonts/FiraMono-Medium.ttf)
+- [timing.ogg](https://github.com/ittokunvim/example-bevy/blob/main/assets/sounds/timing.ogg)
 
-以下のコマンドで、`timing.rs`を実行します。
+## Bevyを追加
 
-```bash
-cargo run --example timing
-```
-
-動作を確認し終えたら、次はBevyをセットアップしていきます🤟
-
-### Bevyを動かす
-
-プロジェクトに、`Bevy`を導入して、動作させていきましょう！
+`Cargo`に`Bevy`を追加して、動かしてみましょう。
 
 まず`Cargo.toml`に以下の記述を行います。
 
@@ -89,46 +75,82 @@ cargo run --example timing
 bevy = "0.10.1"
 ```
 
-ここで一度、`cargo run --example timing`を実行しておいて、Bevyをインストールしておきましょう。ロードが長いので先にプロジェクトに落としておくとスムーズに進みます。
+次に`src/main.rs`に以下のコードを記述します。
 
-そして、`examples/timing.rs`に以下のコードを記述します。
+ここでは、先ほどダウンロードしたアセットのパス、画面サイズ、タイトル名、カメラ、終了キーなどが設定されています。
+
+終了キーは`Esc`キーで、押すとプログラムが終了します。
 
 ```rust
 use bevy::prelude::*;
 
+const GAMETITLE: &str = "タイミングゲーム";
+const WINDOW_SIZE: Vec2 = Vec2::new(640.0, 480.0);
 const BACKGROUND_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
+
+const PATH_FONT_BOLD: &str = "fonts/FiraSans-Bold.ttf";
+const PATH_FONT_MEDIUM: &str = "fonts/FiraMono-Medium.ttf";
+const PATH_SOUND_TIMING: &str = "sounds/timing.ogg";
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    resolution: WINDOW_SIZE.into(),
+                    title: GAMETITLE.to_string(),
+                    ..default()
+                }),
+                ..default()
+            })
+            .set(ImagePlugin::default_nearest())
+        )
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .insert_resource(FixedTime::new_from_secs(1.0 / 60.0))
+        .add_startup_system(setup_camera)
         .add_system(bevy::window::close_on_esc)
         .run();
 }
+
+fn setup_camera(mut commands: Commands) {
+    let camera = Camera2dBundle::default();
+    commands.spawn(camera);
+}
 ```
 
-上記のコードでは、ゲーム背景色の設定、ゲームのフレーム設定、`esc`キーでゲームを終了する設定を行なっています。
+ここまでできたら以下のコマンドを実行してみましょう。
+ウィンドウが表示されたら成功です。
 
-では、このソースコードを動作させてみましょう。真っ黒なウィンドウが表示されれば成功です。
-
-```bash
-cargo run --example timing
+```sh
+cargo run
 ```
 
-### セットアップを実装
+## セットアップを実装
 
-ここでは、ゲームをセットアップする、つまり、初期画面の設定を行います。
+次にタイミングゲームのセットアップ、初期画面の設定をしていきます。
 
-まずは、`timing.rs`に以下のコードを記述します。
+以下のコードを`src/main.rs`に追加してみましょう。
+
+ここではスライダー、キューというコンポーネントを作成し、描画しています。
+
+スライダーはタイミングを判定する役割、キューはタイミングを決定する役割を持ちます。
 
 ```rust
-const SLIDER_SIZE: Vec2 = Vec2::new(500.0, 50.0);
+// ...
 
-const CUE_SIZE: Vec2 = Vec2::new(5.0, 50.0);
-
-const SLIDER_DEFAULT_COLOR: Color = Color::rgb(0.8, 0.8, 0.8);
+const CUE_SIZE: Vec2 = Vec2::new(6.0, 48.0);
+const CUE_POSITION: Vec3 = Vec3::new(0.0, 0.0, 99.0);
 const CUE_COLOR: Color = Color::rgb(0.4, 0.4, 0.4);
+
+const SLIDER_SIZE: Vec2 = Vec2::new(480.0, 48.0);
+const SLIDER_POSITION: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+const SLIDER_COLOR: Color = Color::rgb(0.8, 0.8, 0.8);
+
+#[derive(Component)]
+struct Cue;
+
+#[derive(Component)]
+struct Slider;
 
 fn main() {
     App::new()
@@ -138,58 +160,69 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    // Camera
-    commands.spawn(Camera2dBundle::default());
-
-    // Slider
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: SLIDER_DEFAULT_COLOR,
-            custom_size: Some(SLIDER_SIZE),
-            ..default()
-        },
-        ..default()
-    });
-
     // Cue
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: CUE_COLOR,
-            custom_size: Some(CUE_SIZE),
+    commands.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: CUE_COLOR,
+                custom_size: Some(CUE_SIZE),
+                ..default()
+            },
+            transform: Transform::from_translation(CUE_POSITION),
             ..default()
         },
-        ..default()
-    });
+        Cue,
+    ));
+    // Slider
+    commands.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: SLIDER_COLOR,
+                custom_size: Some(SLIDER_SIZE),
+                ..default()
+            },
+            transform: Transform::from_translation(SLIDER_POSITION),
+            ..default()
+        }, 
+        Slider,
+    ));
 }
 ```
 
-ここでは、カメラのセットと、スライダー（タイミングを判定する細長い棒）、キュー（タイミングを決定する短い棒）の描画を行なっています。
+セットアップが終わったら以下のコマンドを実行して動作を確認してみましょう。
 
-以下のコマンドを実行して、先ほどのウィンドウに細長いグレーの棒と、黄色い短い棒が描画されていれば成功です。
-
-```bash
-cargo run --example timing
+```sh
+cargo run
 ```
 
 ### キューを動かす
 
-ここでは、キューを右に動かす処理を書いていきます。
+次にキューを動かす処理を書いていきましょう。
 
-`timing.rs`に以下のコードを記述します。
+以下のコードを追加することでキューが右に動かすことができます。
+
+内容は`Velocity`コンポーネントを作成し、それをキューに追加します。
+これによりキューは、速度（`Velocity`）を持つことができ、キューを動かすことが可能となります。
+
+しかしコンポーネントを持たせるだけでは意味がないので、`apply_velocity`というシステムを追加して、
+`Velocity`コンポーネントにどのように動くことができるのかを定義しています。
 
 ```rust
-const CUE_SPEED: f32 = 100.0;
-const INITIAL_CUE_DIRECTION: Vec2 = Vec2::new(0.5, -0.5);
+// ...
+const CUE_SPEED: f32 = 200.0;
+const CUE_DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
+
+// ...
+
+#[derive(Component, Deref, DerefMut)]
+struct Velocity(Vec2);
 
 fn main() {
     App::new()
         // ...
-	.add_system(apply_velocity)
-	// ...
+        .add_system(apply_velocity)
+    // ...
 }
-
-#[derive(Component, Deref, DerefMut)]
-struct Velocity(Vec2);
 
 fn setup() {
     // ...
@@ -197,11 +230,12 @@ fn setup() {
     // Cue
     commands.spawn((
         SpriteBundle {
-	    // ...
-	},
-        Velocity(INITIAL_CUE_DIRECTION.normalize() * CUE_SPEED),
+            // ...
+        },
+        Cue,
+        Velocity(CUE_DIRECTION.normalize() * CUE_SPEED),
     ));
-}
+ }
 
 fn apply_velocity(mut query: Query<(&mut Transform, &Velocity)>, time_step: Res<FixedTime>) {
     for (mut transform, velocity) in &mut query {
@@ -210,203 +244,81 @@ fn apply_velocity(mut query: Query<(&mut Transform, &Velocity)>, time_step: Res<
 }
 ```
 
-ここでは、`Velocity(Vec2)`という速度を表すコンポーネントを定義し、これをキューに追加することでオブジェクトを動くことができるようになります。
-
-そして、`apply_velocity`関数では、Velocity(Vec2)を追加したオブジェクトをどのように動かすか書かれています。このタイミングゲームでは、横にしか移動しないので`x`軸のみを動かしています。
-
-以下のコマンドを実行して、キューが動くことを確認してください。キューが右に動き、そのまま画面外に出ていったら成功です。
+では`cargo run`を実行して動作を確認してみましょう。
+キューが右に移動すれば成功です。
 
 ```bash
 cargo run --example timing
 ```
 
-### 衝突判定を追加する
+## 衝突判定を追加する
 
-今のキューでは右に動いて画面外にいってしまうと、もう帰ってきません。そこで、キューを跳ね返す`Reflector`コンポーネントを左右に追加し、キューを常にスライダーの中で跳ね返させるようにしていきます。
+次にキューに衝突判定を追加します。
 
-そして、跳ね返される対象である`Cue`もコンポーネントに追加します。この定義をしていないと、跳ね返すオブジェクトは何なのかわからなくなるからです。
+キューは中央から右に移動し、スライダーの右端にたどり着いたら左に移動し、左端に着いたら右に移動し...を繰り返す処理を実装していきます。
 
-リフレクターとキューは以下のように定義します。跳ね返す処理は次で紹介します。
+`baunceback_cue`の内容は、まずキュー、スライダーの位置と、キューの移動速度の値を取得しています。
 
-```rust
-const REFLECTOR_SIZE: Vec2 = Vec2::new(1.0, 50.0);
-
-const REFRECTOR_COLOR: Color = Color::rgb(0.4, 0.4, 0.4);
-
-// ...
-
-#[derive(Component)]
-struct Cue;
-
-#[derive(Component)]
-struct Reflector;
-
-// ...
-
-fn setup() {
-    // ...
-
-    let refrector_sprite = |slider_pos_x: f32| SpriteBundle {
-        sprite: Sprite {
-            color: REFRECTOR_COLOR,
-            custom_size: Some(REFLECTOR_SIZE),
-            ..default()
-        },
-        transform: Transform {
-            translation: Vec3::new(slider_pos_x / 2.0, 0.0, 0.0),
-            ..default()
-        },
-        ..default()
-    };
-
-    // left reflector
-    commands.spawn((refrector_sprite(-SLIDER_SIZE.x), Reflector));
-
-    // right reflector
-    commands.spawn((refrector_sprite(SLIDER_SIZE.x), Reflector));
-
-    // Cue
-    commands.spawn((
-        SpriteBundle {
-	    // ...
-        },
-        Cue,
-        Velocity(INITIAL_CUE_DIRECTION.normalize() * CUE_SPEED),
-    ));
-
-    // ...
-}
-```
-
-これでスライダーの両端にキューを跳ね返すリフレクターを追加することができました。
-プログラムを実行してみてリフレクターがゲームに追加されているか確認してみてください。
-まだ跳ね返すことはできません。
-
-次に、先ほど作成したリフレクターに衝突判定を追加して、キューを跳ね返すようにしていきましょう。
-Bevyには衝突判定を行う機能に`bevy::sprite::collide_aabb::{collide, Collision}`があります。
-この機能を使用すると簡単にオブジェクト同士の衝突判定を実装することができます。
-
-では以下のコードを`timing.rs`に記述します。
+そして、キューがスライダーの左右の端に達したら、
+移動速度の値を反転させて今まで移動していた方向と逆の方向に移動させています。
 
 ```rust
-use bevy::{
-    prelude::*,
-    sprite::collide_aabb::{collide, Collision},
-};
-
 // ...
 
 fn main() {
     App::new()
         // ...
-	.add_system(check_for_collisions)
-	// ...
+        .add_system(baunceback_cue)
+    // ...
 }
 
 // ...
 
-#[derive(Component)]
-struct Collider;
-
-// ...
-
-fn setup(mut commands: Commands) {
-    // ...
-
-    // left reflector
-    commands.spawn((refrector_sprite(-SLIDER_SIZE.x), Reflector, Collider));
-
-    // right reflector
-    commands.spawn((refrector_sprite(SLIDER_SIZE.x), Reflector, Collider));
-
-    // ...
-}
-
-fn check_for_collisions(
-    mut cue_query: Query<(&mut Velocity, &Transform), With<Cue>>,
-    collider_query: Query<&Transform, With<Collider>>,
+fn baunceback_cue(
+    mut cue_query: Query<(&Transform, &mut Velocity), With<Cue>>,
+    slider_query: Query<&Transform, With<Slider>>,
 ) {
-    let (mut cue_velocity, cue_transform) = cue_query.single_mut();
+    let (cue_transform, mut cue_velocity) = cue_query.single_mut();
+    let slider_transform = slider_query.single();
+    let cue_x = cue_transform.translation.x;
+    let slider_x = slider_transform.translation.x;
 
-    // check collision with reflectors
-    for transform in &collider_query {
-        let collision = collide(
-            cue_transform.translation,
-            CUE_SIZE,
-            transform.translation,
-            transform.scale.truncate(),
-        );
-
-        if let Some(collision) = collision {
-            let reflect_x = match collision {
-                Collision::Left => cue_velocity.x > 0.0,
-                Collision::Right => cue_velocity.x < 0.0,
-                _ => false,
-            };
-
-            // reflect velocity on the x-axis if we hit something on the x-axis
-            if reflect_x {
-                cue_velocity.x = -cue_velocity.x;
-            }
-        }
+    if cue_x - CUE_SIZE.x / 2.0 < slider_x - SLIDER_SIZE.x / 2.0
+    || cue_x + CUE_SIZE.x / 2.0 > slider_x + SLIDER_SIZE.x / 2.0 {
+        cue_velocity.x = -cue_velocity.x;
     }
 }
 ```
 
-ではプログラムを実行してみて、キューが左右に跳ね返されていることを確認してみてください。
-であれば成功です。
+では`cargo run`を実行して動作を確認してみましょう。
+キューが左右に移動すれば成功です。
 
-### タイミングを決める処理を追加する
+## タイミング処理を追加する
 
-次はスライダーに`ok, good, perfect`の3つのエリアを追加し、そのエリア内で左右に動くキューでタイミングを決める処理を書いていきます。
+次はスライダー中に`ok, good, perfect`の3つのエリアを追加し、
+そのエリア内で左右に動くキューでタイミングを決める処理を書いていきます。
 
-ではまずセットアップに3つの色分けをしたエリアを追加します。
+内容は、まずスライダーの上にタイミングのエリアがわかるように色付けしたそれぞれのレンジを描画します。
 
-```rust
-const PERFECT_TIMING_RANGE: f32 = 10.0;
-const GOOD_TIMING_RANGE: f32 = 50.0;
-const OK_TIMING_RANGE: f32 = 150.0;
-
-const SLIDER_OK_COLOR: Color = Color::rgb(0.7, 0.7, 0.7);
-const SLIDER_GOOD_COLOR: Color = Color::rgb(0.6, 0.6, 0.6);
-const SLIDER_PERFECT_COLOR: Color = Color::rgb(0.5, 0.5, 0.5);
-
-fn setup(/**/) {
-   // Slider ok timing range
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: SLIDER_OK_COLOR,
-            custom_size: Some(Vec2::new(OK_TIMING_RANGE * 2.0, SLIDER_SIZE.y)),
-            ..default()
-        },
-        ..default()
-    });
-
-    // Slider good timing range
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: SLIDER_GOOD_COLOR,
-            custom_size: Some(Vec2::new(GOOD_TIMING_RANGE * 2.0, SLIDER_SIZE.y)),
-            ..default()
-        },
-        ..default()
-    });
-
-    // Slider parfect timing range
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: SLIDER_PERFECT_COLOR,
-            custom_size: Some(Vec2::new(PERFECT_TIMING_RANGE * 2.0, SLIDER_SIZE.y)),
-            ..default()
-        },
-        ..default()
-    });
-}
-```
-
-次にタイミングを決める関数を作成します。ここではスペースキーでタイミングを決め、キューのｘ軸を見てそのエリア内でタイミングを決めた場合、ターミナルに出力する処理を書いています。
+そして`decide_timing`を定義し、`TIMING_KEY`が押されたタイミングにキューの位置を取得し、
+エリアに対応したテキストを出力します。
 
 ```rust
+// ...
+
+const TIMING_KEY: KeyCode = KeyCode::Space;
+
+// ...
+
+const PERFECT_RANGE: f32 = 20.0;
+const PERFECT_COLOR: Color = Color::rgb(0.8, 0.2, 0.2);
+const GOOD_RANGE: f32 = 80.0;
+const GOOD_COLOR: Color = Color::rgb(0.2, 0.8, 0.2);
+const OK_RANGE: f32 = 160.0;
+const OK_COLOR: Color = Color::rgb(0.2, 0.2, 0.8);
+
+// ...
+
 fn main() {
     App::new()
         // ...
@@ -414,150 +326,184 @@ fn main() {
 	// ...
 }
 
-fn decide_timing(keyboard_input: Res<Input<KeyCode>>, query: Query<&Transform, With<Cue>>) {
-    let cue_transform = query.single();
-
-    if keyboard_input.just_pressed(KeyCode::Space) {
-        let cue_translation_x = cue_transform.translation.x;
-        println!("{}", cue_translation_x);
-
-        if cue_translation_x < PERFECT_TIMING_RANGE && cue_translation_x > -PERFECT_TIMING_RANGE {
-            println!("Perfect timing!");
-        } else if cue_translation_x < GOOD_TIMING_RANGE && cue_translation_x > -GOOD_TIMING_RANGE {
-            println!("Good timing!");
-        } else if cue_translation_x < OK_TIMING_RANGE && cue_translation_x > -OK_TIMING_RANGE {
-            println!("OK timing!");
-        } else {
-            println!("Bad timing!");
+fn setup(mut commands: Commands) {
+    // ...
+    // Range
+    let closure = |range :f32, color: Color, z: f32| {
+        SpriteBundle {
+            sprite: Sprite {
+                color,
+                custom_size: Some(Vec2::new(range, SLIDER_SIZE.y)),
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(0.0, 0.0, z),
+            ..Default::default()
         }
+    };
+    commands.spawn(closure(PERFECT_RANGE, PERFECT_COLOR, 3.0));
+    commands.spawn(closure(GOOD_RANGE, GOOD_COLOR, 2.0));
+    commands.spawn(closure(OK_RANGE, OK_COLOR, 1.0));
+}
+
+fn decide_timing(
+    keybord_input: Res<Input<KeyCode>>,
+    query: Query<&Transform, With<Cue>>,
+) {
+    if keybord_input.just_pressed(TIMING_KEY) {
+        let transform = query.single();
+        let x = transform.translation.x;
+
+        if x < PERFECT_RANGE / 2.0 && x > -PERFECT_RANGE / 2.0 { println!("Perfect!!!"); }
+        else if x < GOOD_RANGE / 2.0 && x > -GOOD_RANGE / 2.0 { println!("Good!!"); }
+        else if x < OK_RANGE / 2.0 && x > -OK_RANGE / 2.0 { println!("Ok!"); }
+        else { println!("Bad..."); }
     }
 }
 ```
 
-ではプログラムを実行して、タイミングを決めた際にターミナルに文字が表示されていれば成功です。
+では`cargo run`を実行して動作を確認してみましょう。
+キューの位置に応じたテキストが表示されたら成功です。
 
-### スコアボードを追加する
+## スコアボードを追加する
 
-タイミングを決めることができたら次は、それを見えるようにスコアボードを追加します。
+次はスコアボードを追加します。
 
-スコアボードを実装するために、`Resource`を使用します。これはゲーム内で値を表示や変更するために必要な機能です。
+スコアボードを実装するために、`Bevy`が提供している`Resource`を使用します。
+これはゲーム内で値を表示したり変更したりするのに便利です。
 
-まずはセットアップから始めます。ここではゲーム内にスコアボードを追加しますが文字を表示するためにフォントをダウンロードする必要があります。入れておきましょう。
+内容はスコアボードを画面左上に配置し、`update_scoreboard`でスコアボードの値が変更されたらすぐに値を描画し直す処理を追加しています。
 
 ```rust
-const SCOREBOARD_FONT_SIZE: f32 = 40.0;
-const SCOREBOARD_TEXT_PADDING: Val = Val::Px(5.0);
+// ...
 
-fn main() {
-    App::new()
-        // ...
-        .insert_resource(Scoreboard { score: 0 })
-        // ...
-}
+const PATH_FONT_BOLD: &str = "fonts/FiraSans-Bold.ttf";
+const PATH_FONT_MEDIUM: &str = "fonts/FiraMono-Medium.ttf";
+
+// ...
+
+const TEXT_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
+
+// ...
+
+const SCOREBOARD_FONT_SIZE: f32 = 30.0;
+const SCOREBOARD_TEXT: &str = "Score: ";
+const SCOREBOARD_PADDING: Val = Val::Px(5.0);
 
 // ...
 
 #[derive(Resource)]
-struct Scoreboard {
-    score: isize,
+struct Scoreboard(usize);
+
+fn main() {
+    App::new()
+        // ...
+        .insert_resource(Scoreboard(0))
+        // ...
+        .add_system(update_scoreboard)
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+// ...
+
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>
+) {
     // ...
 
     // Scoreboard
     commands.spawn(
         TextBundle::from_sections([
             TextSection::new(
-                "Score: ",
+                SCOREBOARD_TEXT,
                 TextStyle {
-                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    font: asset_server.load(PATH_FONT_BOLD),
                     font_size: SCOREBOARD_FONT_SIZE,
-                    color: Color::BLACK,
-                    ..default()
+                    color: TEXT_COLOR,
                 },
             ),
             TextSection::from_style(TextStyle {
-                font: asset_server.load("fonts/FiraMono-Medium.ttf"),
+                font: asset_server.load(PATH_FONT_MEDIUM),
                 font_size: SCOREBOARD_FONT_SIZE,
-                color: Color::GRAY,
-                ..default()
+                color: TEXT_COLOR,
             }),
         ])
         .with_style(Style {
             position_type: PositionType::Absolute,
             position: UiRect {
-                top: SCOREBOARD_TEXT_PADDING,
-                left: SCOREBOARD_TEXT_PADDING,
-                ..default()
+                top: SCOREBOARD_PADDING,
+                left: SCOREBOARD_PADDING,
+                ..Default::default()
             },
-            ..default()
+            ..Default::default()
         }),
     );
 }
+
+fn update_scoreboard(
+    scoreboard: Res<Scoreboard>,
+    mut query: Query<&mut Text>,
+) {
+    let mut text = query.single_mut();
+    text.sections[1].value = scoreboard.0.to_string();
+}
 ```
 
-ではプログラムを実行してみて、画面左上にスコアボードが表示されていればOKです。
+では`cargo run`を実行して動作を確認してみましょう。
+画面左上にスコアが表示されていれば成功です。
 
-次にスコアボードを更新する処理を書いていきます。
+## ポイントを追加
+
+次はタイミングを決めた時にエリアに応じたポイントを定義し、
+スコアに加算減算していく処理を追加していきます。
+
+ここでは先ほど作成した`decide_timing`の`println`の箇所に変更を加えています。
+さらにスコアがマイナスにならないような処理も追加しています。
 
 ```rust
-fn main() {
-    App::new()
-        // ...
-        .add_system(update_scoreboard)
-        // ...
-}
+// ...
+
+const POINT_PERFECT: usize = 100;
+const POINT_GOOD: usize = 50;
+const POINT_OK: usize = 10;
+const POINT_BAD: usize = 100;
 
 // ...
 
 fn decide_timing(
-    keyboard_input: Res<Input<KeyCode>>,
     mut scoreboard: ResMut<Scoreboard>,
+    keybord_input: Res<Input<KeyCode>>,
     query: Query<&Transform, With<Cue>>,
 ) {
-    // ...
+    if keybord_input.just_pressed(TIMING_KEY) {
+        let transform = query.single();
+        let x = transform.translation.x;
 
-    if keyboard_input.just_pressed(KeyCode::Space) {
-        // ...
-
-        if cue_translation_x < PERFECT_TIMING_RANGE && cue_translation_x > -PERFECT_TIMING_RANGE {
-            scoreboard.score += 100;
-        } else if cue_translation_x < GOOD_TIMING_RANGE && cue_translation_x > -GOOD_TIMING_RANGE {
-            scoreboard.score += 50;
-        } else if cue_translation_x < OK_TIMING_RANGE && cue_translation_x > -OK_TIMING_RANGE {
-            scoreboard.score += 10;
-        } else {
-            scoreboard.score -= 100;
+        if x < PERFECT_RANGE / 2.0 && x > -PERFECT_RANGE / 2.0 { scoreboard.0 += POINT_PERFECT; }
+        else if x < GOOD_RANGE / 2.0 && x > -GOOD_RANGE / 2.0  { scoreboard.0 += POINT_GOOD;    }
+        else if x < OK_RANGE / 2.0 && x > -OK_RANGE / 2.0      { scoreboard.0 += POINT_OK;      }
+        else {
+            scoreboard.0 = if scoreboard.0 < POINT_BAD { 0 }
+                else { scoreboard.0 - POINT_BAD }
         }
     }
 }
-
-// ...
-
-fn update_scoreboard(scoreboard: Res<Scoreboard>, mut query: Query<&mut Text>) {
-    let mut text = query.single_mut();
-    text.sections[1].value = scoreboard.score.to_string();
-}
 ```
 
-ではプログラムを実行してみて、画面左上のスコアボードがタイミングを決めた時に値が変わっていればOKです。
+では`cargo run`を実行して動作を確認してみましょう。
+画面左上にスコアが更新されていれば成功です。
 
-### タイミング決定時に音を鳴らす
+## タイミング音を追加
 
-最後にタイミングを決めた時に音源を再生する処理を書いていきます。
+次にタイミングを決めた時に音が鳴るようにします。
+
+ここでは`Bevy`の`Event`機能を使用します。この機能はとても便利で、
+条件をイベントとして扱うことができ、別のシステムで処理を記述することができます。
+説明が難しい...
 
 ```rust
-fn main() {
-    App::new()
-        // ...
-	.add_event::<TimingEvent>()
-	.add_systems((
-	    // ...
-            play_timing_sound.after(check_for_collisions),
-	))
-	// ...
-}
+// ...
+
+const PATH_SOUND_TIMING: &str = "sounds/timing.ogg";
 
 // ...
 
@@ -567,42 +513,55 @@ struct TimingEvent;
 #[derive(Resource)]
 struct TimingSound(Handle<AudioSource>);
 
+fn main() {
+    App::new()
+        // ...
+        .add_event::<TimingEvent>()
+        .add_system(play_timing_sound)
+}
+
+// ...
+
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // ...
-
     // Sound
-    let cue_timing_sound = asset_server.load("sounds/timing_decide.ogg");
-    commands.insert_resource(TimingSound(cue_timing_sound));
+    let sound = asset_server.load(PATH_SOUND_TIMING);
+    commands.insert_resource(TimingSound(sound));
 
-    // ...
+     // ...
 }
 
 fn decide_timing(
+    mut events: EventWriter<TimingEvent>,
     // ...
-    mut timing_events: EventWriter<TimingEvent>,
 ) {
-    // ...
+    if keyboard_input.just_pressed(TIMING_KEY) {
+        // ...
 
-    if keyboard_input.just_pressed(KeyCode::Space) {
-        // Sends a timing event so that other systems can react to the timing
-        timing_events.send_default();
-	// ...
+        events.send_default();
+
+        // ...
     }
 }
 
 fn play_timing_sound(
-    mut timing_events: EventReader<TimingEvent>,
+    mut events: EventReader<TimingEvent>,
     audio: Res<Audio>,
     sound: Res<TimingSound>,
 ) {
-    // Play a sound once per frame if a timing occurred.
-    if !timing_events.is_empty() {
-        // This prevents events staying active on the next frame.
-        timing_events.clear();
-        audio.play(sound.0.clone());
-    }
+    if events.is_empty() { return; }
+    events.clear();
+    audio.play(sound.0.clone());
 }
 ```
 
-ではプログラムを実行してみて、タイミングを決めた際に音が鳴れば成功です。
+では`cargo run`を実行して動作を確認してみましょう。
+タイミング決定時に音が出れば成功です。
+
+## まとめ
+
+お疲れ様でした！いかがだったでしょうか？
+
+`Bevy`はまだ発展途上ではありますが、小規模なゲームなどは難なく作ることができてしまいます。
+
+もしこの記事が何かの助けになれば幸いです。ありがとうございました！
 
